@@ -10,7 +10,7 @@
 
 namespace Primary {
 
-constexpr const char* const IPSecondariesConfig::Type;
+const char* const IPSecondariesConfig::Type = "IP";
 
 SecondaryConfigParser::Configs SecondaryConfigParser::parse_config_file(const boost::filesystem::path& config_file) {
   if (!boost::filesystem::exists(config_file)) {
@@ -129,4 +129,10 @@ void JsonConfigParser::createDockerComposeSecondariesCfg(Configs& configs, const
   }
 }
 
+void JsonConfigParser::createTorizonGenericSecondariesCfg(Configs& configs, const Json::Value& json_torizon_generic_sec_cfg) {
+  for (const auto& json_config : json_torizon_generic_sec_cfg) {
+    auto torizon_generic_config = std::make_shared<TorizonGenericSecondaryConfig>(json_config);
+    configs.push_back(torizon_generic_config);
+  }
+}
 }  // namespace Primary

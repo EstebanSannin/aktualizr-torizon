@@ -1,7 +1,6 @@
-#include <fstream>
-
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
+#include <fstream>
 
 #include "crypto/crypto.h"
 #include "utilities/fault_injection.h"
@@ -10,7 +9,7 @@
 
 namespace Primary {
 
-constexpr const char* const VirtualSecondaryConfig::Type;
+const char* const VirtualSecondaryConfig::Type = "virtual";
 
 VirtualSecondaryConfig::VirtualSecondaryConfig(const Json::Value& json_config) : ManagedSecondaryConfig(Type) {
   partial_verifying = json_config["partial_verifying"].asBool();
