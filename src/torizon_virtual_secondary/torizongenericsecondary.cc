@@ -116,19 +116,25 @@ data::InstallationResult TorizonGenericSecondary::install(const Uptane::Target &
 
   /* action_script */
   int ret=std::system((sconfig.action_script_path.string() + " install").c_str());
-  printf("RET: %d\n",ret>>8);
+  if(ret>>8 != 0)
+    printf("action script FAIL!\n");
 
+   /* action_script */
+  printf("calling action_script validate\n");
+  ret=std::system((sconfig.action_script_path.string() + " validate").c_str());
+  if(ret>>8 != 0)
+    printf("action script FAIL!\n");
   // check here the result from the action script 
-  return data::InstallationResult(data::ResultCode::Numeric::kOk, "OK torizon-generic"); 
+  return data::InstallationResult(data::ResultCode::Numeric::kNeedCompletion, "");
+
+
+//  return data::InstallationResult(data::ResultCode::Numeric::kOk, "OK torizon-generic"); 
 }
 
 bool TorizonGenericSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
   std::string content;
  
-  /* action_script */
-  int ret=std::system((sconfig.action_script_path.string() + " fw_info").c_str());
-  printf("RET: %d\n",ret>>8);
-
+  
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
     firmware_info.name = std::string("noimage");
     content = "";
@@ -139,7 +145,12 @@ bool TorizonGenericSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmwa
   firmware_info.hash = Uptane::ManifestIssuer::generateVersionHashStr(content);
   firmware_info.len = content.size();
     
-   return true;
+  /* action_script */
+  int ret=std::system((sconfig.action_script_path.string() + " fw_info").c_str());
+  if(ret>>8 != 0)
+    printf("action script FAIL!\n");
+  
+  return true;
 }
 
 void TorizonGenericSecondary::validateInstall() {
