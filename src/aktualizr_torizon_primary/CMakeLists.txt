@@ -2,7 +2,7 @@ set(SOURCES main.cc secondary_config.cc secondary.cc update_events.cc update_loc
 set(HEADERS secondary_config.h secondary.h update_events.h update_lock.h command_runner.h compose_manager.h device_data_proxy.h)
 
 add_executable(aktualizr-torizon ${SOURCES})
-target_link_libraries(aktualizr-torizon aktualizr_lib torizon_virtual_secondary aktualizr-posix lua dl)
+target_link_libraries(aktualizr-torizon aktualizr_lib torizon_virtual_secondary aktualizr-posix)
 target_include_directories(aktualizr-torizon PUBLIC ${PROJECT_SOURCE_DIR}/aktualizr/third_party)
 
 install(TARGETS aktualizr-torizon RUNTIME DESTINATION bin COMPONENT aktualizr-torizon)

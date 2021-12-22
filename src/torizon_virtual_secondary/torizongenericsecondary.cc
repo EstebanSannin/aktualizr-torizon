@@ -21,8 +21,6 @@
 #include <typeinfo>
 #include <any>
 
-#include "Lua.hpp"
-
 #include <sstream>
 
 #define TORIZON_GENERIC_ECU_ID "torizon-generic"
@@ -48,12 +46,7 @@ TorizonGenericSecondaryConfig::TorizonGenericSecondaryConfig(const Json::Value& 
   firmware_path = json_config["firmware_path"].asString();
   target_name_path = json_config["target_name_path"].asString();
   metadata_path = json_config["metadata_path"].asString();
-  lua_action_path = json_config["lua_action_path"].asString();
 
-  printf("Calling for: %s\n",ecu_hardware_id.c_str());
-  Lua lua("/home/esteban/code/example.lua");
-  FunctionInfo f1(1, {}, "init");
-  lua.call(f1, ecu_hardware_id.c_str());
 }
 
 std::vector<TorizonGenericSecondaryConfig> TorizonGenericSecondaryConfig::create_from_file(
@@ -84,7 +77,6 @@ void TorizonGenericSecondaryConfig::dump(const boost::filesystem::path& file_ful
   json_config["firmware_path"] = firmware_path.string();
   json_config["target_name_path"] = target_name_path.string();
   json_config["metadata_path"] = metadata_path.string();
-  json_config["lua_action_path"] = lua_action_path.string();
   
 
   Json::Value root;
@@ -107,16 +99,6 @@ TorizonGenericSecondary::TorizonGenericSecondary(Primary::TorizonGenericSecondar
 
 data::InstallationResult TorizonGenericSecondary::install(const Uptane::Target &target) {
   auto str = secondary_provider_->getTargetFileHandle(target);
-  printf("--->I'm in install function ID=%s\n",sconfig.ecu_hardware_id.c_str());
-  
-  Lua lua(sconfig.lua_action_path.string().c_str());
-  std::vector<std::string> returnTypes{"b"};
-  FunctionInfo f1(1, returnTypes, "install");
-  std::vector<std::any> returnValue=lua.call(f1, sconfig.ecu_hardware_id.c_str());
-  bool result=std::any_cast<bool>(returnValue[0]);
-  printf("result install=%d\n",result);
-    
-  printf("INSTALL: THIS Function just save the artifact\n");
   printf("--->Saving artifact...\n");
   std::string artifact_file = sconfig.firmware_path.string();
   std::ofstream out_file(artifact_file, std::ios::binary);
@@ -133,13 +115,6 @@ bool TorizonGenericSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmwa
   std::string content;
 
   printf("--->I'm in getFirmwareInfo function ID=%s\n",sconfig.ecu_hardware_id.c_str());
-  printf("--->I'm in getFirmwareInfo lua_action_path=%s\n",sconfig.lua_action_path.string().c_str());
-  Lua lua(sconfig.lua_action_path.string().c_str());
-  std::vector<std::string> returnTypes{"b"};
-  FunctionInfo f1(1, returnTypes, "getFirmwareInfo");
-  std::vector<std::any> returnValue=lua.call(f1, sconfig.ecu_hardware_id.c_str());
-  bool result=std::any_cast<bool>(returnValue[0]);
-  printf("result=%d\n",result);
 
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
     firmware_info.name = std::string("noimage");
@@ -158,13 +133,6 @@ void TorizonGenericSecondary::validateInstall() {
   
   printf("---> put here some installation verification code\n");
     
-  Lua lua(sconfig.lua_action_path.string().c_str());
-  std::vector<std::string> returnTypes{"b"};
-  FunctionInfo f1(1, returnTypes, "validate");
-  std::vector<std::any> returnValue=lua.call(f1, sconfig.ecu_hardware_id.c_str());
-  bool result=std::any_cast<bool>(returnValue[0]);
-  printf("result=%d\n",result);
-
 }
 
 }  // namespace Primary
