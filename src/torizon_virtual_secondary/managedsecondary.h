@@ -39,6 +39,7 @@ class ManagedSecondaryConfig : public SecondaryConfig {
   boost::filesystem::path firmware_path;
   boost::filesystem::path target_name_path;
   boost::filesystem::path metadata_path;
+  boost::filesystem::path action_script_path;
    
   KeyType key_type{KeyType::kRSA2048};
 };

@@ -21,7 +21,10 @@
 #include <typeinfo>
 #include <any>
 
+#include <boost/process.hpp>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #define TORIZON_GENERIC_ECU_ID "torizon-generic"
 #define DOCKER_COMPOSE_ECU_ID "docker-compose"
@@ -46,7 +49,7 @@ TorizonGenericSecondaryConfig::TorizonGenericSecondaryConfig(const Json::Value& 
   firmware_path = json_config["firmware_path"].asString();
   target_name_path = json_config["target_name_path"].asString();
   metadata_path = json_config["metadata_path"].asString();
-
+  action_script_path = json_config["action_script_path"].asString();
 }
 
 std::vector<TorizonGenericSecondaryConfig> TorizonGenericSecondaryConfig::create_from_file(
@@ -77,6 +80,7 @@ void TorizonGenericSecondaryConfig::dump(const boost::filesystem::path& file_ful
   json_config["firmware_path"] = firmware_path.string();
   json_config["target_name_path"] = target_name_path.string();
   json_config["metadata_path"] = metadata_path.string();
+  json_config["action_script_path"] = action_script_path.string();
   
 
   Json::Value root;
@@ -99,6 +103,7 @@ TorizonGenericSecondary::TorizonGenericSecondary(Primary::TorizonGenericSecondar
 
 data::InstallationResult TorizonGenericSecondary::install(const Uptane::Target &target) {
   auto str = secondary_provider_->getTargetFileHandle(target);
+   
   printf("--->Saving artifact...\n");
   std::string artifact_file = sconfig.firmware_path.string();
   std::ofstream out_file(artifact_file, std::ios::binary);
@@ -108,13 +113,21 @@ data::InstallationResult TorizonGenericSecondary::install(const Uptane::Target &
   Utils::writeFile(sconfig.target_name_path, target.filename());
   printf("--->Check Artifact HERE\n");
   printf("--->Install Artifact Here\n");
+
+  /* action_script */
+  int ret=std::system((sconfig.action_script_path.string() + " install").c_str());
+  printf("RET: %d\n",ret>>8);
+
+  // check here the result from the action script 
   return data::InstallationResult(data::ResultCode::Numeric::kOk, "OK torizon-generic"); 
 }
 
 bool TorizonGenericSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmware_info) const {
   std::string content;
-
-  printf("--->I'm in getFirmwareInfo function ID=%s\n",sconfig.ecu_hardware_id.c_str());
+ 
+  /* action_script */
+  int ret=std::system((sconfig.action_script_path.string() + " fw_info").c_str());
+  printf("RET: %d\n",ret>>8);
 
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
     firmware_info.name = std::string("noimage");
@@ -131,8 +144,9 @@ bool TorizonGenericSecondary::getFirmwareInfo(Uptane::InstalledImageInfo& firmwa
 
 void TorizonGenericSecondary::validateInstall() {
   
-  printf("---> put here some installation verification code\n");
-    
+  /* action_script */
+  int ret=std::system((sconfig.action_script_path.string() + " validate").c_str());
+  printf("RET: %d\n",ret>>8);
 }
 
 }  // namespace Primary
